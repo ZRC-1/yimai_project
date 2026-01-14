@@ -1,0 +1,226 @@
+*** Using Compiler 'V5.06 update 4 (build 422)', folder: 'F:\SOFTWARE\KEIL\CORE\ARM\ARMCC\Bin'
+Build target 'zrc_lcd'
+compiling fonts.c...
+assembling startup_stm32f407xx.s...
+compiling stm32f4xx_hal_msp.c...
+../Core/Inc/drv_ft6336.h(116): error:  #130: expected a "{"
+  uint8_t FT6336_Is_Touch_Detected(FT6336_HandleTypeDef *hft6336);
+../Core/Src/stm32f4xx_hal_msp.c(64): warning:  #12-D: parsing restarts here after previous syntax error
+  {
+../Core/Src/stm32f4xx_hal_msp.c(78): warning:  #940-D: missing return statement at end of non-void function "FT6336_Get_Touch_Point" 
+  }
+../Core/Src/stm32f4xx_hal_msp.c: 2 warnings, 1 error
+compiling stm32f4xx_hal_i2c_ex.c...
+compiling spi.c...
+../Core/Inc/drv_ft6336.h(116): error:  #130: expected a "{"
+  uint8_t FT6336_Is_Touch_Detected(FT6336_HandleTypeDef *hft6336);
+../Core/Src/spi.c(32): warning:  #12-D: parsing restarts here after previous syntax error
+  {
+../Core/Src/spi.c(41): error:  #20: identifier "hspi1" is undefined
+    hspi1.Instance = SPI1;
+../Core/Src/spi.c(55): warning:  #223-D: function "Error_Handler" declared implicitly
+      Error_Handler();
+../Core/Src/spi.c(61): warning:  #940-D: missing return statement at end of non-void function "FT6336_Get_Touch_Point" 
+  }
+../Core/Src/spi.c(90): error:  #20: identifier "hdma_spi1_tx" is undefined
+      hdma_spi1_tx.Instance = DMA2_Stream3;
+../Core/Src/spi.c(105): warning:  #223-D: function "Error_Handler" declared implicitly
+        Error_Handler();
+../Core/Src/spi.c: 4 warnings, 3 errors
+compiling i2c.c...
+../Core/Inc/drv_ft6336.h(116): error:  #130: expected a "{"
+  uint8_t FT6336_Is_Touch_Detected(FT6336_HandleTypeDef *hft6336);
+../Core/Src/i2c.c(31): warning:  #12-D: parsing restarts here after previous syntax error
+  {
+../Core/Src/i2c.c(40): error:  #20: identifier "hi2c1" is undefined
+    hi2c1.Instance = I2C1;
+../Core/Src/i2c.c(51): warning:  #223-D: function "Error_Handler" declared implicitly
+      Error_Handler();
+../Core/Src/i2c.c(57): warning:  #940-D: missing return statement at end of non-void function "FT6336_Get_Touch_Point" 
+  }
+../Core/Src/i2c.c: 3 warnings, 2 errors
+compiling stm32f4xx_hal_flash_ramfunc.c...
+compiling stm32f4xx_hal_gpio.c...
+compiling stm32f4xx_hal_pwr_ex.c...
+compiling stm32f4xx_hal_flash_ex.c...
+compiling gpio.c...
+../Core/Inc/drv_ft6336.h(116): error:  #130: expected a "{"
+  uint8_t FT6336_Is_Touch_Detected(FT6336_HandleTypeDef *hft6336);
+../Core/Src/gpio.c(28): warning:  #12-D: parsing restarts here after previous syntax error
+  {
+../Core/Src/gpio.c(55): warning:  #940-D: missing return statement at end of non-void function "FT6336_Get_Touch_Point" 
+  }
+../Core/Src/gpio.c: 2 warnings, 1 error
+compiling main.c...
+../Core/Inc/drv_ft6336.h(116): error:  #130: expected a "{"
+  uint8_t FT6336_Is_Touch_Detected(FT6336_HandleTypeDef *hft6336);
+../Core/Inc/fonts.h(6): warning:  #12-D: parsing restarts here after previous syntax error
+  typedef struct {
+../Core/Inc/fonts.h(7): warning:  #257-D: const variable "width"  requires an initializer
+      const uint8_t width;
+../Core/Inc/fonts.h(10): warning:  #940-D: missing return statement at end of non-void function "FT6336_Get_Touch_Point" 
+  } FontDef;
+../Core/Inc/fonts.h(7): warning:  #177-D: variable "width"  was declared but never referenced
+      const uint8_t width;
+../Core/Inc/fonts.h(8): warning:  #177-D: variable "height"  was declared but never referenced
+      uint8_t height;
+../Core/Inc/fonts.h(9): warning:  #177-D: variable "data"  was declared but never referenced
+      const uint16_t *data;
+../Core/Inc/fonts.h(10): error:  #77-D: this declaration has no storage class or type specifier
+  } FontDef;
+../Core/Inc/fonts.h(13): error:  #757: variable "FontDef"  is not a type name
+  extern FontDef Font_7x10;
+../Core/Inc/fonts.h(14): error:  #757: variable "FontDef"  is not a type name
+  extern FontDef Font_11x18;
+../Core/Inc/fonts.h(15): error:  #757: variable "FontDef"  is not a type name
+  extern FontDef Font_16x26;
+../Core/Inc/st7789.h(246): error:  #757: variable "FontDef"  is not a type name
+  void ST7789_WriteChar(uint16_t x, uint16_t y, char ch, FontDef font, uint16_t color, uint16_t bgcolor);
+../Core/Inc/st7789.h(247): error:  #757: variable "FontDef"  is not a type name
+  void ST7789_WriteString(uint16_t x, uint16_t y, const char *str, FontDef font, uint16_t color, uint16_t bgcolor);
+../Core/Src/main.c(128): warning:  #223-D: function "MX_GPIO_Init" declared implicitly
+      MX_GPIO_Init();
+../Core/Src/main.c(129): warning:  #223-D: function "MX_DMA_Init" declared implicitly
+      MX_DMA_Init();
+../Core/Src/main.c(132): warning:  #223-D: function "MX_SPI1_Init" declared implicitly
+      MX_SPI1_Init();
+../Core/Src/main.c(138): warning:  #223-D: function "Error_Handler" declared implicitly
+          Error_Handler();
+../Core/Src/main.c(140): warning:  #223-D: function "FT6336_RegisterCallback" declared implicitly
+      FT6336_RegisterCallback(MyTouchCallback);
+../Core/Src/main.c(147): warning:  #223-D: function "FT6336_Process" declared implicitly
+          FT6336_Process();
+../Core/Src/main.c(269): warning:  #223-D: function "Error_Handler" declared implicitly
+          Error_Handler();
+../Core/Src/main.c(283): warning:  #223-D: function "Error_Handler" declared implicitly
+          Error_Handler();
+../Core/Src/main.c(295): error:  #159: declaration is incompatible with previous "Error_Handler"  (declared at line 138)
+  void Error_Handler(void)
+../Core/Src/main.c: 14 warnings, 8 errors
+compiling stm32f4xx_hal_cortex.c...
+compiling st7789.c...
+../Core/Inc/drv_ft6336.h(116): error:  #130: expected a "{"
+  uint8_t FT6336_Is_Touch_Detected(FT6336_HandleTypeDef *hft6336);
+..\Core\Src\st7789.c(21): warning:  #12-D: parsing restarts here after previous syntax error
+  {
+..\Core\Src\st7789.c(24): error:  #20: identifier "hspi1" is undefined
+  	HAL_SPI_Transmit(&
+T7789_SPI_PORT, &cmd, sizeof(cmd), HAL_MAX_DELAY);
+..\Core\Src\st7789.c(24): error:  #20: identifier "cmd" is undefined
+  	HAL_SPI_Transmit(&
+T7789_SPI_PORT, &cmd, sizeof(cmd), HAL_MAX_DELAY);
+..\Core\Src\st7789.c(26): warning:  #940-D: missing return statement at end of non-void function "FT6336_Get_Touch_Point" 
+  }
+..\Core\Src\st7789.c(53): error:  #20: identifier "hspi1" is undefined
+  			HAL_SPI_Transmit(&
+T7789_SPI_PORT, buff, chunk_size, HAL_MAX_DELAY);
+..\Core\Src\st7789.c(70): error:  #20: identifier "hspi1" is undefined
+  	HAL_SPI_Transmit(&
+T7789_SPI_PORT, &data, sizeof(data), HAL_MAX_DELAY);
+..\Core\Src\st7789.c(81): warning:  #223-D: function "ST7789_WriteCommand" declared implicitly
+  	ST7789_WriteCommand(ST7789_MADCTL);	// MADCTL
+..\Core\Src\st7789.c(112): warning:  #223-D: function "ST7789_WriteCommand" declared implicitly
+  	ST7789_WriteCommand(ST7789_CASET); 
+..\Core\Src\st7789.c(145): warning:  #223-D: function "ST7789_WriteCommand" declared implicitly
+      ST7789_WriteCommand(ST7789_COLMOD);		//	Set color mode
+..\Core\Src\st7789.c(191): warning:  #223-D: function "ST7789_Fill_Color" declared implicitly
+  	ST7789_Fill_Color(BLACK);				//	Fill with Black.
+..\Core\Src\st7789.c(199): error:  #159: declaration is incompatible with previous "ST7789_Fill_Color"  (declared at line 191)
+  void ST7789_Fill_Color(uint16_t color)
+..\Core\Src\st7789.c(230): warning:  #186-D: pointless comparison of unsigned integer with zero
+  	if ((x < 0) || (x >= ST7789_WIDTH) ||
+..\Core\Src\st7789.c(231): warning:  #186-D: pointless comparison of unsigned integer with zero
+  		 (y < 0) || (y >= ST7789_HEIGHT))	return;
+..\Core\Src\st7789.c(249): warning:  #186-D: pointless comparison of unsigned integer with zero
+  	if ((xEnd < 0) || (xEnd >= ST7789_WIDTH) ||
+..\Core\Src\st7789.c(250): warning:  #186-D: pointless comparison of unsigned integer with zero
+  		 (yEnd < 0) || (yEnd >= ST7789_HEIGHT))	return;
+..\Core\Src\st7789.c(429): warning:  #223-D: function "ST7789_WriteCommand" declared implicitly
+  	ST7789_WriteCommand(invert ? 0x21 /* INVON */ : 0x20 /* INVOFF */);
+..\Core\Src\st7789.c(666): warning:  #223-D: function "ST7789_WriteCommand" declared implicitly
+  	ST7789_WriteCommand(tear ? 0x35 /* TEON */ : 0x34 /* TEOFF */);
+..\Core\Src\st7789.c: 12 warnings, 6 errors
+compiling usart.c...
+../Core/Inc/drv_ft6336.h(116): error:  #130: expected a "{"
+  uint8_t FT6336_Is_Touch_Detected(FT6336_HandleTypeDef *hft6336);
+..\Core\Src\usart.c(32): warning:  #12-D: parsing restarts here after previous syntax error
+  {
+..\Core\Src\usart.c(41): error:  #20: identifier "huart1" is undefined
+    huart1.Instance = USART1;
+..\Core\Src\usart.c(51): warning:  #223-D: function "Error_Handler" declared implicitly
+      Error_Handler();
+..\Core\Src\usart.c(57): warning:  #940-D: missing return statement at end of non-void function "FT6336_Get_Touch_Point" 
+  }
+..\Core\Src\usart.c: 3 warnings, 2 errors
+compiling stm32f4xx_hal_rcc.c...
+compiling stm32f4xx_hal_dma_ex.c...
+compiling drv_ft6336.c...
+../Core/Inc/drv_ft6336.h(116): error:  #130: expected a "{"
+  uint8_t FT6336_Is_Touch_Detected(FT6336_HandleTypeDef *hft6336);
+..\Core\Src\drv_ft6336.c(9): warning:  #12-D: parsing restarts here after previous syntax error
+  static TouchPoint_t g_touch_points[2] = {0};
+..\Core\Src\drv_ft6336.c(9): warning:  #174-D: expression has no effect
+  static TouchPoint_t g_touch_points[2] = {0};
+..\Core\Src\drv_ft6336.c(9): error:  #65: expected a ";"
+  static TouchPoint_t g_touch_points[2] = {0};
+..\Core\Src\drv_ft6336.c(9): warning:  #940-D: missing return statement at end of non-void function "FT6336_Get_Touch_Point" 
+  static TouchPoint_t g_touch_points[2] = {0};
+..\Core\Src\drv_ft6336.c(36): error:  #20: identifier "g_hft6336" is undefined
+      g_hft6336 = hft6336;
+..\Core\Src\drv_ft6336.c(141): error:  #20: identifier "g_touch_callback" is undefined
+      g_touch_callback = callback;
+..\Core\Src\drv_ft6336.c(151): error:  #20: identifier "g_hft6336" is undefined
+      if (g_touch_interrupt_flag && g_hft6336)
+..\Core\Src\drv_ft6336.c(165): error:  #20: identifier "g_touch_points" is undefined
+                  FT6336_Get_Touch_Point(g_hft6336, i + 1, &g_touch_points[i].x, &g_touch_points[i].y, &g_touch_points[i].id,&g_touch_points[i].event);
+..\Core\Src\drv_ft6336.c(168): error:  #20: identifier "g_touch_callback" is undefined
+                  if (g_touch_callback) g_touch_callback(&g_touch_points[i]);
+..\Core\Src\drv_ft6336.c(174): error:  #20: identifier "g_touch_points" is undefined
+                  FT6336_Get_Touch_Point(g_hft6336, i + 1, &new_x, &new_y,&g_touch_points[i].id,&g_touch_points[i].event);
+..\Core\Src\drv_ft6336.c(179): error:  #20: identifier "g_touch_callback" is undefined
+                      if (g_touch_callback) g_touch_callback(&g_touch_points[i]);
+..\Core\Src\drv_ft6336.c(185): error:  #20: identifier "g_touch_points" is undefined
+                  g_touch_points[i].event = TOUCH_EVENT_RELEASE;
+..\Core\Src\drv_ft6336.c(186): error:  #20: identifier "g_touch_callback" is undefined
+                  if (g_touch_callback) g_touch_callback(&g_touch_points[i]);
+..\Core\Src\drv_ft6336.c(188): warning:  #223-D: function "memset" declared implicitly
+                  memset(&g_touch_points[i], 0, sizeof(TouchPoint_t));
+..\Core\Src\drv_ft6336.c(208): error:  #20: identifier "g_hft6336" is undefined
+      
+_HAL_GPIO_EXTI_CLEAR_IT(g_hft6336->INT_Pin);
+..\Core\Src\drv_ft6336.c(233): error:  #247: function "FT6336_Get_Touch_Point"  has already been defined
+  FT6336_StatusTypeDef FT6336_Get_Touch_Point(FT6336_HandleTypeDef *hft6336, uint8_t point_num, uint16_t *x, uint16_t *y,uint8_t *id,TouchEvent_t *event)
+..\Core\Src\drv_ft6336.c(278): error:  #20: identifier "g_hft6336" is undefined
+      FT6336_ReadReg(g_hft6336, FT6336_REG_TD_STATUS, &temp);
+..\Core\Src\drv_ft6336.c: 4 warnings, 14 errors
+compiling stm32f4xx_it.c...
+../Core/Inc/drv_ft6336.h(116): error:  #130: expected a "{"
+  uint8_t FT6336_Is_Touch_Detected(FT6336_HandleTypeDef *hft6336);
+../Core/Src/stm32f4xx_it.c(70): warning:  #12-D: parsing restarts here after previous syntax error
+  {
+../Core/Src/stm32f4xx_it.c(209): error:  #20: identifier "hdma_spi1_tx" is undefined
+    HAL_DMA_IRQHandler(&hdma_spi1_tx);
+../Core/Src/stm32f4xx_it.c(219): warning:  #223-D: function "FT6336_IRQHandler" declared implicitly
+  	FT6336_IRQHandler();
+../Core/Src/stm32f4xx_it.c: 2 warnings, 2 errors
+compiling stm32f4xx_hal_flash.c...
+compiling stm32f4xx_hal_dma.c...
+compiling stm32f4xx_hal.c...
+compiling dma.c...
+../Core/Inc/drv_ft6336.h(116): error:  #130: expected a "{"
+  uint8_t FT6336_Is_Touch_Detected(FT6336_HandleTypeDef *hft6336);
+../Core/Src/dma.c(40): warning:  #12-D: parsing restarts here after previous syntax error
+  {
+../Core/Src/dma.c(50): warning:  #940-D: missing return statement at end of non-void function "FT6336_Get_Touch_Point" 
+  }
+../Core/Src/dma.c: 2 warnings, 1 error
+compiling stm32f4xx_hal_rcc_ex.c...
+compiling stm32f4xx_hal_pwr.c...
+compiling stm32f4xx_hal_i2c.c...
+compiling system_stm32f4xx.c...
+compiling stm32f4xx_hal_exti.c...
+compiling stm32f4xx_hal_spi.c...
+compiling stm32f4xx_hal_uart.c...
+"zrc_lcd\zrc_lcd.axf" - 40 Error(s), 48 Warning(s).
+Target not created.
+Build Time Elapsed:  00:00:05
