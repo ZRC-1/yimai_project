@@ -108,7 +108,7 @@ typedef void (*pTouchEventCallback)(TouchPoint_t* touch_point);
 #define FT6336_VENDOR_ID_VALUE_HIGH    0x64U
 #define FT6336_VENDOR_ID_VALUE_MID     0x26U
 #define FT6336_VENDOR_ID_VALUE_LOW     0x02U
-#define FT6336_DEFAULT_THRESHOLD  		 0xBBU   /* Default touch threshold */ //BB为默认值，按需调整
+#define FT6336_DEFAULT_THRESHOLD  		 0x22U   /* Default touch threshold */ //BB为默认值，按需调整
 #define FT6336_SCAN_PERIOD   					 0X0A    //100MS
 /* Exported Macro ------------------------------------------------------------*/
 

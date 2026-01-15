@@ -505,6 +505,226 @@ void ST7789_DrawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint
 	ST7789_UnSelect();
     #endif
 }
+
+
+
+
+// 函数功能：在ST7789显示屏指定位置绘制图像，输入数据为uint8_t数组（前8字节为配置字节，含图像分辨率）
+// 配置字节解析规则（前8字节）：第3-4位（数组下标2-3）为图像宽度（16位大端），第5-6位（数组下标4-5）为图像高度（16位大端）
+
+// 参数说明：
+
+//   x,y - 图像左上角坐标
+
+//   data - 输入的uint8_t数组（前8字节为配置字节，含宽高；后续为RGB565格式字节流，每像素2字节，MSB在前）
+
+// 配置字节解析规则（前8字节）：第3-4位（数组下标2-3）为图像宽度（16位大端），第5-6位（数组下标4-5）为图像高度（16位大端）
+
+// 配置字节解析规则（前8字节）：假设格式为 [宽高相关配置字节1-4] + [宽高相关配置字节5-8]，具体根据实际协议调整
+
+// 此处默认解析规则：字节2-3为图像宽度（16位，大端），字节6-7为图像高度（16位，大端），可根据实际配置调整解析逻辑
+
+// 参数说明：
+
+//   x,y - 图像左上角坐标
+
+//   data - 输入的uint8_t数组（前8字节为配置字节，含宽高；后续为RGB565格式字节流，每像素2字节，MSB在前）
+
+//   x,y - 图像左上角坐标
+
+//   x,y - 图像左上角坐标
+
+//   data - 输入的uint8_t数组（前8字节为配置字节，含图像分辨率；后续为RGB565格式字节流，每像素2字节，MSB在前）
+
+//   data - 输入的uint8_t数组（前8字节为配置字节，后续为RGB565格式字节流，每像素2字节，MSB在前）
+
+void ST7789_DrawImage_Uint8(uint16_t x, uint16_t y, const uint8_t *data)
+
+    // --------------- 1. 前置检查与配置字节解析 ---------------
+
+{
+ if (data == NULL) {
+
+        //LOG_ERROR("Image data is NULL");
+
+        return;
+
+    }
+
+    // 解析图像宽高（34位=宽度，56位=高度，16位大端格式）
+
+    uint16_t img_w = (data[2] << 8) | data[3]; // 第3-4位（下标2-3）→ 宽度
+
+    uint16_t img_h = (data[4] << 8) | data[5]; // 第5-6位（下标4-5）→ 高度
+
+
+
+    // 分辨率有效性检查
+
+    if (img_w == 0 || img_h == 0) {
+
+        //LOG_ERROR("Invalid image resolution: w=%d, h=%d", img_w, img_h);
+
+        return;
+
+    }
+
+
+
+    // 坐标有效性检查
+
+    if (x >= ST7789_WIDTH || y >= ST7789_HEIGHT) {
+
+        // LOG_ERROR("Invalid coords: x=%d,y=%d", x, y);
+
+        return;
+
+    }
+
+    // 跳过前8个配置字节，指向有效图像数据
+
+    const uint8_t *image_data = data + 8;
+
+
+    // 修正超出屏幕的绘制区域
+
+    uint16_t draw_w = ((x + img_w) > ST7789_WIDTH) ? (ST7789_WIDTH - x) : img_w;
+
+    uint16_t draw_h = ((y + img_h) > ST7789_HEIGHT) ? (ST7789_HEIGHT - y) : img_h;
+
+ if (draw_w == 0 || draw_h == 0) return;
+
+
+
+    // 计算实际需要传输的总字节数（每像素2字节）
+
+    uint32_t total_bytes = (uint32_t)draw_w * draw_h * 2;
+
+
+
+#ifdef USE_DMA
+
+    // --------------- 2. 计算8行分块的核心参数 ---------------
+
+    // 每块行数（保持原BLOCK_ROWS定义，默认8行）
+
+    uint32_t block_pixels = (uint32_t)draw_w * BLOCK_ROWS;   // 每块像素数（draw_w*8）
+
+    uint32_t block_bytes = block_pixels * 2;                 // 每块字节数（每像素2字节）
+
+ uint32_t total_blocks = (draw_h + BLOCK_ROWS - 1) / BLOCK_ROWS; // 总块数（向上取整）
+
+
+
+    // --------------- 3. 分配8行所需的小块内存（仅block_bytes字节）---------------
+
+    uint8_t *block_buf = (uint8_t *)malloc(block_bytes);
+
+    if (block_buf == NULL) {
+
+        return;
+
+    }
+
+    // --------------- 4. 统一配置显示窗口+拉低CS ---------------
+
+    ST7789_SetAddressWindow(x, y, x + draw_w - 1, y + draw_h - 1);
+
+    ST7789_Select(); // 全程保持CS拉低，仅最后拉高
+
+
+
+    // --------------- 5. 逐块传输8行数据 ---------------
+
+    uint32_t byte_offset = 0; // 全局字节偏移量（指向当前块起始字节）
+
+    for (uint32_t block = 0; block < total_blocks; block++)
+
+    {
+
+        // 计算当前块的实际行数（最后一块可能不足8行）
+
+        uint16_t current_rows = (block == total_blocks - 1) ? (draw_h - block * BLOCK_ROWS) : BLOCK_ROWS;
+
+        uint32_t current_pixels = (uint32_t)draw_w * current_rows;
+
+        uint32_t current_bytes = current_pixels * 2; // 当前块实际字节数
+
+
+
+        // --------------- 5.1 填充当前块的数据（直接拷贝有效图像字节流）---------------
+
+        for (uint32_t i = 0; i < current_bytes; i++)
+
+        {
+
+            if (byte_offset + i >= total_bytes) break; // 防止字节越界
+
+            block_buf[i] = image_data[byte_offset + i]; // 拷贝跳过配置字节后的有效数据
+
+        }
+
+
+
+        // --------------- 5.2 DMA分片传输当前块（防溢出）---------------
+
+        uint32_t sent_bytes = 0;
+
+        while (sent_bytes < current_bytes)
+
+        {
+
+            uint16_t chunk = (current_bytes - sent_bytes) > DMA_MAX_SIZE ? 
+
+                              DMA_MAX_SIZE : (uint16_t)(current_bytes - sent_bytes);
+
+            ST7789_WriteData(block_buf + sent_bytes, chunk);
+
+            sent_bytes += chunk;
+
+        }
+
+
+
+        // --------------- 5.3 更新字节偏移量 ---------------
+
+        byte_offset += current_bytes;
+
+    }
+
+
+
+    // --------------- 6. 释放内存+恢复硬件状态 ---------------
+
+    free(block_buf);
+
+    block_buf = NULL; // 置空防野指针
+
+    ST7789_UnSelect(); // 拉高CS
+
+#else
+
+    // 非DMA模式：直接传输uint8_t字节流
+
+    ST7789_Select();
+
+    // 配置显示窗口（使用实际绘制尺寸）
+
+    ST7789_SetAddressWindow(x, y, x + draw_w - 1, y + draw_h - 1);
+
+    // 传输实际需要的字节数（避免传输超出屏幕区域的数据）
+
+    ST7789_WriteData((uint8_t *)image_data, total_bytes);
+
+    ST7789_UnSelect();
+
+#endif
+
+}
+
+
+
+
 /**
  * @brief Invert Fullscreen color
  * @param invert -> Whether to invert
@@ -910,6 +1130,6 @@ void ST7789_Test(void)
 
 	//	If FLASH cannot storage anymore datas, please delete codes below.
 	ST7789_Fill_Color(WHITE);
-	ST7789_DrawImage(0, 0, 128, 128, (uint16_t *)saber);
+//	ST7789_DrawImage(0, 0, 128, 128, (uint16_t *)saber);
 	HAL_Delay(3000);
 }

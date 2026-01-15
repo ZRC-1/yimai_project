@@ -155,19 +155,13 @@ int main(void)
     /////////////////
 ///////////////////////////////////
     ST7789_Init();
-    ST7789_Test();
-    ST7789_Fill_Color(BLACK);
-    
-	ST7789_DrawImage(0, 0, 128, 128, (uint16_t *)saber);
-	HAL_Delay(3000);
-
-    ST7789_Fill_Color(BLACK);
-    ST7789_DrawImage(0, 0, 240, 240, (uint16_t *)knky);
-    HAL_Delay(1000);
-    ST7789_DrawImage(0, 0, 240, 240, (uint16_t *)tek);
-    HAL_Delay(1000);
-    ST7789_DrawImage(0, 0, 240, 240, (uint16_t *)adi1);
-    HAL_Delay(1000);
+   // ST7789_Test();
+    ST7789_Fill_Color(WHITE);
+    ST7789_DrawImage_Uint8(0,0,gImage_home);
+    HAL_Delay(3000);
+    ST7789_DrawImage_Uint8(0,0,gImage_config);
+    HAL_Delay(3000);
+    while(1);
     // I2C_Scanner();
     // 3. 调用初始化函数
     if (FT6336_Init(&hft6336) != FT6336_OK)

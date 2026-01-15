@@ -212,7 +212,7 @@ extern SPI_HandleTypeDef ST7789_SPI_PORT;
 #define ST7789_RDID4   0xDD
 
 /* Advanced options */
-#define ST7789_COLOR_MODE_16bit 0x55    //  RGB565 (16bit)
+#define ST7789_COLOR_MODE_16bit 0x05    //  RGB565 (16bit)
 #define ST7789_COLOR_MODE_18bit 0x66    //  RGB666 (18bit)
 
 /* Basic operations */
@@ -263,6 +263,7 @@ void ST7789_TearEffect(uint8_t tear);
 void ST7789_Test(void);
 void ST7789_WriteNumber(uint16_t x, uint16_t y, int32_t num, FontDef font,uint16_t color, uint16_t bgcolor, uint16_t max_x, uint16_t max_y);
 void ST7789_WriteNumber_Simple(uint16_t x, uint16_t y, int32_t num, FontDef font,uint16_t color, uint16_t bgcolor);
+void ST7789_DrawImage_Uint8(uint16_t x, uint16_t y, const uint8_t *data);
 #ifndef ST7789_ROTATION
     #error You should at least choose a display rotation!
 #endif

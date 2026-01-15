@@ -41,3 +41,4 @@ zrc_lcd\st7789.o: ../Core/Inc/main.h
 zrc_lcd\st7789.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 zrc_lcd\st7789.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 zrc_lcd\st7789.o: ../Core/Inc/dma.h
+zrc_lcd\st7789.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
