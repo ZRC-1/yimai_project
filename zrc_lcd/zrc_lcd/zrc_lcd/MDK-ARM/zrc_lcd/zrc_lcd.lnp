@@ -11,6 +11,7 @@
 "zrc_lcd\fonts.o"
 "zrc_lcd\usart.o"
 "zrc_lcd\drv_ft6336.o"
+"zrc_lcd\brain_app.o"
 "zrc_lcd\stm32f4xx_hal_i2c.o"
 "zrc_lcd\stm32f4xx_hal_i2c_ex.o"
 "zrc_lcd\stm32f4xx_hal_rcc.o"

@@ -13,7 +13,10 @@ typedef struct {
 extern FontDef Font_7x10;
 extern FontDef Font_11x18;
 extern FontDef Font_16x26;
-
+extern FontDef Font_Chinese_Single_16x26;
+// 单个汉字索引映射表（与字库一一对应）
+extern const char* chinese_single_list[];
+#define SINGLE_CHINESE_COUNT   38//(sizeof(chinese_single_list) / sizeof(chinese_single_list[0])) // 单个汉字总数
 //16-bit(RGB565) Image lib.
 /*******************************************
  *             CAUTION:

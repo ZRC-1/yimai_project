@@ -1,7 +1,10 @@
+
 #include "st7789.h"
 #include "stdlib.h"
 #include "stdio.h"
 #include "dma.h"
+#include "brain_app.h"
+
 #ifdef USE_DMA
 #include <string.h>
 uint16_t DMA_MIN_SIZE = 16;
@@ -1055,7 +1058,251 @@ void ST7789_TearEffect(uint8_t tear)
 	ST7789_UnSelect();
 }
 
+//////////////新增汉字显示函数////////////////////////////////
 
+/**
+ * @brief  显示单个汉字（支持独立选中，区域内居中）
+ * @param  x_start: 显示区域左上角X坐标
+ * @param  y_start: 显示区域左上角Y坐标
+ * @param  x_end:   显示区域右下角X坐标
+ * @param  y_end:   显示区域右下角Y坐标
+ * @param  single_char: 单个汉字（如'太'、'开'、'禁'）
+ * @param  color:   汉字颜色（RGB565）
+ * @param  bgcolor: 背景颜色（RGB565）
+ * @retval 0:成功, -1:失败
+ */
+int ST7789_WriteSingleChineseCenter(uint16_t x_start, uint16_t y_start, 
+                                   uint16_t x_end, uint16_t y_end, 
+                                   const char *single_char, uint16_t color, uint16_t bgcolor)
+{
+    // 1. 合法性校验
+    if (x_start > x_end || y_start > y_end || single_char == '\0') return -1;
+    if (x_end >= ST7789_WIDTH) x_end = ST7789_WIDTH - 1;
+    if (y_end >= ST7789_HEIGHT) y_end = ST7789_HEIGHT - 1;
+
+    // 2. 填充背景
+    ST7789_Fill(x_start, y_start, x_end, y_end, bgcolor);
+
+    // 3. 查找单个汉字在字库中的索引
+    int char_idx = -1;
+    for (int i = 0; i < SINGLE_CHINESE_COUNT; i++) {
+        //if (*chinese_single_list[i] == *single_char) 
+         if (chinese_single_list[i] != NULL && strncmp(chinese_single_list[i], single_char,2) == 0)   
+        {
+            char_idx = i;
+            break;
+        }
+    }
+    
+    if (char_idx == -1) return -1; // 未找到该汉字
+
+    // 4. 计算居中坐标
+    FontDef font = Font_Chinese_Single_16x26;
+    uint16_t area_w = x_end - x_start + 1;
+    uint16_t area_h = y_end - y_start + 1;
+
+    // 水平居中：区域中点 - 汉字半宽
+    uint16_t char_x = x_start + (area_w - font.width) / 2;
+    // 垂直居中：区域中点 - 汉字半高
+    uint16_t char_y = y_start + (area_h - font.height) / 2;
+
+    // 5. 边界修正
+    char_x = (char_x < x_start) ? x_start : char_x;
+    char_y = (char_y < y_start) ? y_start : char_y;
+    char_x = (char_x + font.width > x_end) ? (x_end - font.width + 1) : char_x;
+    char_y = (char_y + font.height > y_end) ? (y_end - font.height + 1) : char_y;
+
+    // 6. 写入单个汉字点阵
+    ST7789_Select();
+    ST7789_SetAddressWindow(char_x, char_y, char_x + font.width - 1, char_y + font.height - 1);
+    
+    // 单个汉字占 font.height*2 个uint16_t（16×26点阵）
+    const uint16_t *dot_data = &font.data[char_idx * font.height * 2];
+    for (uint16_t i = 0; i < font.height; i++) {
+        for (uint16_t j = 0; j < font.width; j++) {
+            uint16_t dot = ((dot_data[i * 2]&0xff)<<8)|(dot_data[i * 2+1]&0xff); // 每行2个uint16_t，覆盖16列
+            uint8_t bit = (dot >> (15 - j)) & 0x01;
+            uint16_t show_color = bit ? color : bgcolor;
+            uint8_t data[] = {show_color >> 8, show_color & 0xFF};
+            ST7789_WriteData(data, sizeof(data));
+        }
+    }    
+    ST7789_UnSelect();
+
+    return 0;
+}
+
+
+
+
+/**
+ * @brief  显示多个汉字（由单个汉字组合，整体居中）
+ * @param  x_start/x_end/y_start/y_end: 显示区域
+ * @param  chinese_str: 汉字字符串（如"太阳","开启","暂停"）
+ * @param  color/bgcolor: 颜色
+ * @retval 0:成功, -1:失败
+ */
+int ST7789_WriteChineseStrCenter(uint16_t x_start, uint16_t y_start, 
+                                 uint16_t x_end, uint16_t y_end, 
+                                 const char *chinese_str, uint16_t color, uint16_t bgcolor)
+{
+    if (chinese_str == NULL || *chinese_str == '\0') return -1;
+
+    // 统计汉字个数
+    uint8_t char_num = 0;
+    const char *p = chinese_str;
+    while (*p != '\0') {
+        char_num++;
+        p=p+2;
+    }
+    //printf("char_num=%d\n",char_num);
+    FontDef font = Font_Chinese_Single_16x26;
+    uint16_t total_w = char_num * font.width/2*3-font.width/2; // 总宽度
+    uint16_t area_w = x_end - x_start + 1;
+    uint16_t area_h = y_end - y_start + 1;
+
+    // 2. 填充背景
+    ST7789_Fill(x_start, y_start, x_end, y_end, bgcolor);
+    // 整体居中起始坐标
+    uint16_t start_x = x_start + (area_w - total_w) / 2;
+    uint16_t start_y = y_start + (area_h - font.height) / 2;
+
+    // 逐个显示单个汉字
+    p = chinese_str;
+    uint16_t current_x = start_x;
+    while (*p != '\0' && current_x + font.width <= x_end) {
+        ST7789_WriteSingleChineseCenter(current_x, start_y, 
+                                       current_x + font.width - 1, start_y + font.height - 1, 
+                                       p, color, bgcolor);
+        current_x += font.width/2*3;
+        p=p+2;
+    }
+
+    return 0;
+}
+
+
+int ST7789_WriteChineseStrCenter_nointerval(uint16_t x_start, uint16_t y_start, 
+                                 uint16_t x_end, uint16_t y_end, 
+                                 const char *chinese_str, uint16_t color, uint16_t bgcolor)
+{
+    if (chinese_str == NULL || *chinese_str == '\0') return -1;
+
+    // 统计汉字个数
+    uint8_t char_num = 0;
+    const char *p = chinese_str;
+    while (*p != '\0') {
+        char_num++;
+        p=p+2;
+    }
+    printf("char_num=%d\n",char_num);
+    FontDef font = Font_Chinese_Single_16x26;
+    uint16_t total_w = char_num * font.width; // 总宽度
+    uint16_t area_w = x_end - x_start + 1;
+    uint16_t area_h = y_end - y_start + 1;
+
+    // 2. 填充背景
+    ST7789_Fill(x_start, y_start, x_end, y_end, bgcolor);
+    // 整体居中起始坐标
+    uint16_t start_x = x_start + (area_w - total_w) / 2;
+    uint16_t start_y = y_start + (area_h - font.height) / 2;
+
+    // 逐个显示单个汉字
+    p = chinese_str;
+    uint16_t current_x = start_x;
+    while (*p != '\0' && current_x + font.width <= x_end) {
+        ST7789_WriteSingleChineseCenter(current_x, start_y, 
+                                       current_x + font.width - 1, start_y + font.height - 1, 
+                                       p, color, bgcolor);
+        current_x += font.width;
+        p=p+2;
+    }
+
+    return 0;
+}
+
+
+/**
+ * @brief  在指定矩形区域内居中显示数字（上下+左右均居中）
+ * @param  area_x_min: 显示区域左边界X坐标
+ * @param  area_y_min: 显示区域上边界Y坐标
+ * @param  area_x_max: 显示区域右边界X坐标
+ * @param  area_y_max: 显示区域下边界Y坐标
+ * @param  num: 要显示的整数（支持正负）
+ * @param  font: 字体样式（FontDef结构体，与原函数一致）
+ * @param  color: 数字显示颜色（RGB565格式）
+ * @param  bgcolor: 数字背景颜色（RGB565格式）
+ * @retval 无
+ * @note   1. 完全兼容原函数的正负整数显示逻辑
+ *         2. 自动计算居中起始坐标，确保数字在矩形内上下左右居中
+ *         3. 若数字宽度超过区域宽度，按原函数逻辑换行/截断
+ *         4. 硬件操作风格与ST7789_WriteString/WriteNumber完全一致
+ */
+void ST7789_WriteNumber_Center(uint16_t area_x_min, uint16_t area_y_min, 
+                               uint16_t area_x_max, uint16_t area_y_max, 
+                               int32_t num, FontDef font,
+                               uint16_t color, uint16_t bgcolor)
+{
+    // 2. 边界校验：确保显示区域有效
+    if (area_x_max > ST7789_WIDTH) area_x_max = ST7789_WIDTH;
+    if (area_y_max > ST7789_HEIGHT) area_y_max = ST7789_HEIGHT;
+    if (area_x_min >= area_x_max || area_y_min >= area_y_max || 
+        font.width == 0 || font.height == 0)
+    {
+        return;
+    }
+	ST7789_Fill(area_x_min, area_y_min, area_x_max, area_y_max, bgcolor);
+    // 3. 计算数字的字符长度（包含负号）
+    char num_str[16] = {0};
+    snprintf(num_str, sizeof(num_str), "%d", num);
+    uint8_t num_len = strlen(num_str); // 负号会被计入长度
+
+    // 4. 计算居中起始坐标
+    // 4.1 计算区域可用宽度和高度
+    uint16_t area_width = area_x_max - area_x_min;
+    uint16_t area_height = area_y_max - area_y_min;
+    
+    // 4.2 计算数字总宽度（所有字符的宽度和）
+    uint16_t num_total_width = num_len * font.width;
+    
+    // 4.3 计算左右居中的起始X坐标（若数字宽度超过区域宽度，X取左边界）
+    uint16_t start_x = area_x_min;
+    if (num_total_width <= area_width)
+    {
+        start_x = area_x_min + (area_width - num_total_width) / 2;
+    }
+    
+    // 4.4 计算上下居中的起始Y坐标（若字体高度超过区域高度，Y取上边界）
+    uint16_t start_y = area_y_min;
+    if (font.height <= area_height)
+    {
+        start_y = area_y_min + (area_height - font.height) / 2;
+    }
+
+    // 5. 调用原数字显示函数完成居中显示
+    ST7789_WriteNumber(start_x, start_y, num, font, color, bgcolor, 
+                       area_x_max, area_y_max);
+}
+
+/**
+ * @brief  简化版居中数字显示函数（基于你定义的LCD_Area结构体）
+ * @param  area: LCD_Area结构体，指定显示区域
+ * @param  num: 要显示的整数（支持正负）
+ * @param  font: 字体样式
+ * @param  color: 数字颜色
+ * @param  bgcolor: 背景颜色
+ * @retval 无
+ * @note   直接传入LCD_Area结构体，无需手动拆分坐标，更贴合你的区域定义逻辑
+ */
+void ST7789_WriteNumber_Center_Area(LCD_Area *area, int32_t num, FontDef font,uint16_t color, uint16_t bgcolor)
+{
+    ST7789_WriteNumber_Center(area->x_min, area->y_min, 
+                              area->x_max, area->y_max, 
+                              num, font, color, bgcolor);
+}
+
+
+/////////////////////////////////////////////////////////////
 /** 
  * @brief A Simple test function for ST7789
  * @param  none

@@ -72,11 +72,27 @@ typedef struct {
     uint8_t id; // Touch point ID (1 or 2)
 } TouchPoint_t;
 
+
+
+typedef enum 
+{
+    TOUCH_EVENT_STATE_NONE =0X00,
+    TOUCH_EVENT_STATE_SHORT_CLICK = 0x01,       /*!< Short Click */
+    TOUCH_EVENT_STATE_LONG_PRESS = 0x02,      /*!< Long Press */
+    TOUCH_EVENT_STATE_MOVE = 0x03,     /*!< Move */
+} touch_event_t;
+typedef struct 
+{
+    uint16_t x;
+    uint16_t y;
+    touch_event_t event;
+    uint8_t id; 
+} touch_event_state_t;
 /**
  * @brief  Touch Event Callback Function Pointer
  */
 typedef void (*pTouchEventCallback)(TouchPoint_t* touch_point);
-
+extern touch_event_state_t  touch_event[2];
 
 /* Exported Constants --------------------------------------------------------*/
 #define FT6336_I2C_ADDR_GND      0x38U<<1 /*!< I2C Address when ADDR pin is connected to GND */
@@ -103,7 +119,7 @@ typedef void (*pTouchEventCallback)(TouchPoint_t* touch_point);
 
 
 //config 
-#define TOUCH_LONG_PRESS_MS   800U  // 长按时间阈值 (毫秒)
+#define TOUCH_LONG_PRESS_MS   500U  // 长按时间阈值 (毫秒)
 #define MOVE_THRESHOLD_PX     10U   // 移动距离阈值 (像素)
 #define FT6336_VENDOR_ID_VALUE_HIGH    0x64U
 #define FT6336_VENDOR_ID_VALUE_MID     0x26U
@@ -122,12 +138,14 @@ FT6336_StatusTypeDef FT6336_Config(FT6336_HandleTypeDef *hft6336);
 uint8_t FT6336_Get_Touch_Count(FT6336_HandleTypeDef *hft6336);
 FT6336_StatusTypeDef FT6336_Get_Touch_Point(FT6336_HandleTypeDef *hft6336, uint8_t point_num, uint16_t *x, uint16_t *y,uint8_t *id,TouchEvent_t *event);
 uint8_t FT6336_Is_Touch_Detected(FT6336_HandleTypeDef *hft6336);
-
 // Event-driven functions
 void FT6336_RegisterCallback(pTouchEventCallback callback);
 void FT6336_Process(void); // 必须在主循环中调用此函数
 void FT6336_IRQHandler(void); // 必须在EXTI中断服务函数中调用
 
+
+void FT6336_circulation(void);
+void drv_FT6336_init(void);
 #ifdef __cplusplus
 }
 #endif

@@ -60,6 +60,8 @@ void Error_Handler(void);
 #define ST7789_CS_Pin GPIO_PIN_13
 #define ST7789_CS_GPIO_Port GPIOG
 
+
+
 //#define TOUCH_INT_Pin GPIO_PIN_1
 //#define TOUCH_INT_GPIO_Port GPIOB
 

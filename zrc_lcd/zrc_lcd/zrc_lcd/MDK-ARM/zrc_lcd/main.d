@@ -40,7 +40,10 @@ zrc_lcd\main.o: ../Core/Inc/dma.h
 zrc_lcd\main.o: ../Core/Inc/spi.h
 zrc_lcd\main.o: ../Core/Inc/gpio.h
 zrc_lcd\main.o: ../Core/Inc/st7789.h
+zrc_lcd\main.o: ../Core/Inc/st7789.h
 zrc_lcd\main.o: ../Core/Inc/fonts.h
+zrc_lcd\main.o: ../Core/Inc/brain_app.h
+zrc_lcd\main.o: ../Core/Inc/brain_app.h
 zrc_lcd\main.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 zrc_lcd\main.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
 zrc_lcd\main.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h

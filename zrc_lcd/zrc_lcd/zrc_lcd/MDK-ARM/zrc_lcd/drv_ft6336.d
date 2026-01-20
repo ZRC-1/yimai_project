@@ -37,5 +37,11 @@ zrc_lcd\drv_ft6336.o: ../Core/Inc/i2c.h
 zrc_lcd\drv_ft6336.o: ../Core/Inc/main.h
 zrc_lcd\drv_ft6336.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 zrc_lcd\drv_ft6336.o: ../Core/Inc/st7789.h
+zrc_lcd\drv_ft6336.o: ../Core/Inc/st7789.h
 zrc_lcd\drv_ft6336.o: ../Core/Inc/fonts.h
+zrc_lcd\drv_ft6336.o: ../Core/Inc/brain_app.h
+zrc_lcd\drv_ft6336.o: ../Core/Inc/brain_app.h
 zrc_lcd\drv_ft6336.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+zrc_lcd\drv_ft6336.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+zrc_lcd\drv_ft6336.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+zrc_lcd\drv_ft6336.o: ../Core/Inc/usart.h

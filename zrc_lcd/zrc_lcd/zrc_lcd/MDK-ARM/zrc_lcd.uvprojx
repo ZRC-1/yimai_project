@@ -445,6 +445,11 @@
               <FileType>1</FileType>
               <FilePath>..\Core\Src\drv_ft6336.c</FilePath>
             </File>
+            <File>
+              <FileName>brain_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\brain_app.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

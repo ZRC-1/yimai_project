@@ -1,8 +1,10 @@
 #ifndef __ST7789_H
 #define __ST7789_H
+
+#include "st7789.h"
 #include "fonts.h"
 #include "main.h"
-
+#include "brain_app.h"
 /* choose a Hardware SPI port to use. */
 #define ST7789_SPI_PORT hspi1
 extern SPI_HandleTypeDef ST7789_SPI_PORT;
@@ -27,6 +29,7 @@ extern SPI_HandleTypeDef ST7789_SPI_PORT;
 #define ST7789_CS_PORT  ST7789_CS_GPIO_Port
 #define ST7789_CS_PIN   ST7789_CS_Pin
 #endif
+
 
 /* If u need Backlight control, uncomment below */
 //#define BLK_PORT
@@ -140,7 +143,7 @@ extern SPI_HandleTypeDef ST7789_SPI_PORT;
  *Color of pen
  *If you want to use another color, you can choose one in RGB565 format.
  */
-
+#define BGCOLOR     0xB5BB
 #define WHITE       0xFFFF
 #define BLACK       0x0000
 #define BLUE        0x001F
@@ -215,6 +218,7 @@ extern SPI_HandleTypeDef ST7789_SPI_PORT;
 #define ST7789_COLOR_MODE_16bit 0x05    //  RGB565 (16bit)
 #define ST7789_COLOR_MODE_18bit 0x66    //  RGB666 (18bit)
 
+
 /* Basic operations */
 #define ST7789_RST_Clr() HAL_GPIO_WritePin(ST7789_RST_PORT, ST7789_RST_PIN, GPIO_PIN_RESET)
 #define ST7789_RST_Set() HAL_GPIO_WritePin(ST7789_RST_PORT, ST7789_RST_PIN, GPIO_PIN_SET)
@@ -232,6 +236,7 @@ extern SPI_HandleTypeDef ST7789_SPI_PORT;
 #define ABS(x) ((x) > 0 ? (x) : -(x))
 
 /* Basic functions. */
+
 void ST7789_Init(void);
 void ST7789_SetRotation(uint8_t m);
 void ST7789_Fill_Color(uint16_t color);
@@ -258,12 +263,22 @@ void ST7789_DrawFilledCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color);
 
 /* Command functions */
 void ST7789_TearEffect(uint8_t tear);
+//extern void ST7789_WriteNumber_Center_Area(LCD_Area *area, int32_t num, FontDef font, uint16_t color, uint16_t bgcolor);
+
+
 
 /* Simple test function. */
 void ST7789_Test(void);
 void ST7789_WriteNumber(uint16_t x, uint16_t y, int32_t num, FontDef font,uint16_t color, uint16_t bgcolor, uint16_t max_x, uint16_t max_y);
 void ST7789_WriteNumber_Simple(uint16_t x, uint16_t y, int32_t num, FontDef font,uint16_t color, uint16_t bgcolor);
 void ST7789_DrawImage_Uint8(uint16_t x, uint16_t y, const uint8_t *data);
+int ST7789_WriteSingleChineseCenter(uint16_t x_start, uint16_t y_start, uint16_t x_end, uint16_t y_end, const char * single_char, uint16_t color, uint16_t bgcolor);
+int ST7789_WriteChineseStrCenter(uint16_t x_start, uint16_t y_start, uint16_t x_end, uint16_t y_end, const char *chinese_str, uint16_t color, uint16_t bgcolor);
+void ST7789_WriteNumber_Center(uint16_t area_x_min, uint16_t area_y_min,uint16_t area_x_max, uint16_t area_y_max,int32_t num, FontDef font,uint16_t color, uint16_t bgcolor);
+int ST7789_WriteChineseStrCenter_nointerval(uint16_t x_start, uint16_t y_start, 
+                                 uint16_t x_end, uint16_t y_end, 
+                                 const char *chinese_str, uint16_t color, uint16_t bgcolor);
+
 #ifndef ST7789_ROTATION
     #error You should at least choose a display rotation!
 #endif

@@ -30,6 +30,7 @@
 #include "usart.h"
 #include "drv_ft6336.h"
 #include "string.h"
+#include "brain_app.h"
 #include "stm32f4xx_hal.h"          // 基础HAL库（必加）
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -80,19 +81,6 @@ int fputc(int ch, FILE *f)
     HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
     return ch;
 }
-
-FT6336_HandleTypeDef hft6336=
-{
-	.hi2c      = &hi2c1,       // 使用 I2C1
-	.Address   = FT6336_I2C_ADDR_GND,	// 使用地址 0x38 (最常见)
-	.RST_Port  = GPIOG,
-	.RST_Pin   = GPIO_PIN_15,
-	.INT_Port  = GPIOB,
-	.INT_Pin   = GPIO_PIN_1, // 假设INT引脚连接到PB1
-};
-TouchState_t touch_state[2] = {0}; // 支持两个触摸点
-void MyTouchCallback(TouchPoint_t* touch_point);
-void FT6336_LONGPRESS_DETECTION(TouchState_t touch_state[2]);
 void I2C_Scanner(void)
 {
     HAL_StatusTypeDef status;
@@ -111,8 +99,8 @@ void I2C_Scanner(void)
     }
     printf("Scanning finished.\r\n");
 }
+ 
 
-uint16_t color_test=0;    
 /* Private user code ---------------------------------------------------------*/
 
 
@@ -125,151 +113,25 @@ uint16_t color_test=0;
   */
 int main(void)
 {
-    
-    /* USER CODE BEGIN 1 */
-    /* USER CODE END 1 */
+  HAL_Init();
+  SystemClock_Config();
+  MX_GPIO_Init();
+  MX_SPI1_Init();
+  #ifdef USE_DMA
+  MX_DMA_Init();
+  #endif
+  MX_I2C1_Init();
+  MX_USART1_UART_Init();
 
-    /* MCU Configuration--------------------------------------------------------*/
-    
-    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-    HAL_Init();
-    /* USER CODE BEGIN Init */
-
-    /* USER CODE END Init */
-
-    /* Configure the system clock */
-    SystemClock_Config();
-
-    /* USER CODE BEGIN SysInit */
-
-    /* USER CODE END SysInit */
-
-    /* Initialize all configured peripherals */
-    MX_GPIO_Init();
-    MX_SPI1_Init();
-    #ifdef USE_DMA
-    MX_DMA_Init();
-    #endif
-    MX_I2C1_Init();
-    MX_USART1_UART_Init();
-    /////////////////
-///////////////////////////////////
-    ST7789_Init();
-   // ST7789_Test();
-    ST7789_Fill_Color(WHITE);
-    ST7789_DrawImage_Uint8(0,0,gImage_home);
-    HAL_Delay(3000);
-    ST7789_DrawImage_Uint8(0,0,gImage_config);
-    HAL_Delay(3000);
-    while(1);
-    // I2C_Scanner();
-    // 3. 调用初始化函数
-    if (FT6336_Init(&hft6336) != FT6336_OK)
-    {
-        Error_Handler();
-    }
-    FT6336_RegisterCallback(MyTouchCallback);
-    
-      HAL_Delay(10);
-      //I2C_Scanner();
-      /* USER CODE BEGIN WHILE */
-      while (1)
-      {
-        FT6336_Process();
-        FT6336_LONGPRESS_DETECTION(touch_state);
-        HAL_Delay(10);
-        /* USER CODE END WHILE */
-        /* USER CODE BEGIN 3 */
-      }
-    /* USER CODE END 3 */
-}
-
-//长按检测函数
-void FT6336_LONGPRESS_DETECTION(TouchState_t touch_state[2])
-{
-  for (int i = 0; i < 2; i++)
+  brain_driver_init();
+  brain_app_init(acupoint_list);
+  
+  while (1)
   {
-    // 检查条件：正在触摸 && 尚未移动 && 尚未触发长按
-    if (touch_state[i].is_touching && !touch_state[i].is_moving && !touch_state[i].is_long_press_triggered)
-    {
-      // 检查是否超过长按时间阈值
-      if ((HAL_GetTick() - touch_state[i].press_start_tick) > TOUCH_LONG_PRESS_MS)
-      {
-              // 触发长按事件
-              printf("Touch %d: LONG PRESS\r\n", i + 1);
-              touch_state[i].is_long_press_triggered = 1; // 置1，防止重复触发
-      }
-    }
+    brain_app_circulation();
+    brain_driver_circulation(); 
+    //HAL_Delay(10);
   }
-}
-
-/**
- * @brief  用户自定义的触摸事件回调函数 (包含所有逻辑)
- * @param  touch_point: 包含触摸点信息的结构体
- * @retval None
- */
-void MyTouchCallback(TouchPoint_t* touch_point)
-{
-    if (touch_point->id > 2) return;
-    uint8_t point_id = touch_point->id - 1;
-
-    switch (touch_point->event)
-    {
-        case TOUCH_EVENT_PRESS:
-        // 记录按下时的所有初始状态
-        touch_state[point_id].press_start_x = touch_point->x;
-        touch_state[point_id].press_start_y = touch_point->y;
-        touch_state[point_id].press_start_tick = HAL_GetTick();
-        touch_state[point_id].is_touching = 1;
-        touch_state[point_id].is_long_press_triggered = 0;
-        touch_state[point_id].is_moving = 0;
-        printf("Touch %d: Pressed at (%d, %d)\r\n", touch_point->id, touch_point->x, touch_point->y);
-        break;
-
-        case TOUCH_EVENT_CONTACT:
-        // 如果还未进入移动状态，检查移动距离
-        if (!touch_state[point_id].is_moving)
-        {
-            int dx = abs(touch_point->x - touch_state[point_id].press_start_x);
-            int dy = abs(touch_point->y - touch_state[point_id].press_start_y);
-            
-            if (dx > MOVE_THRESHOLD_PX || dy > MOVE_THRESHOLD_PX)
-            {
-                // 超过阈值，判定为移动开始
-                touch_state[point_id].is_moving = 1;
-                printf("Touch %d: MOVE STARTED\r\n", touch_point->id);
-            }
-        }
-        break;
-
-        case TOUCH_EVENT_RELEASE:
-        // 在抬起时，根据整个过程的标志位，最终判定事件类型
-        if (touch_state[point_id].is_moving)
-        {
-            printf("Touch %d: MOVE ENDED\r\n", touch_point->id);
-        }
-        else if (touch_state[point_id].is_long_press_triggered)
-        {
-            // 长按已经打印过，这里可以什么都不做，或者打印一个结束事件
-            printf("Touch %d: LONG PRESS RELEASED\r\n", touch_point->id);
-        }
-        else
-        {
-            uint32_t press_duration = HAL_GetTick() - touch_state[point_id].press_start_tick;
-            printf("Touch %d: SHORT CLICK (Duration: %d ms)\r\n", touch_point->id, press_duration);
-            color_test=color_test+2000;
-            if(color_test>65535)color_test=0;
-            ST7789_Fill_Color(color_test);
-            ST7789_WriteNumber_Simple(120, 100, color_test, Font_16x26, RED, WHITE); 
-        }
-        
-        // 清理该点的所有状态
-        memset(&touch_state[point_id], 0, sizeof(TouchState_t));
-        break;
-
-        default:
-        break;
-    }
 }
 
 

@@ -2,6 +2,8 @@
 #include <string.h> // For memset
 #include "st7789.h"
 #include "stdio.h"
+#include "stdlib.h"
+#include "stdint.h"
 /* Private Variables ---------------------------------------------------------*/
 static FT6336_HandleTypeDef *g_hft6336 = NULL;
 static pTouchEventCallback g_touch_callback = NULL;
@@ -17,8 +19,16 @@ static FT6336_StatusTypeDef FT6336_ReadReg(FT6336_HandleTypeDef *hft6336, uint8_
 static FT6336_StatusTypeDef FT6336_WriteReg(FT6336_HandleTypeDef *hft6336, uint8_t reg, uint8_t data);
 static void FT6336_ClearInterrupt(void);
 
-
-
+FT6336_HandleTypeDef hft6336=
+{
+	.hi2c      = &hi2c1,       // 使用 I2C1
+	.Address   = FT6336_I2C_ADDR_GND,	// 使用地址 0x38 (最常见)
+	.RST_Port  = GPIOG,
+	.RST_Pin   = GPIO_PIN_15,
+	.INT_Port  = GPIOB,
+	.INT_Pin   = GPIO_PIN_1, // 假设INT引脚连接到PB1
+};
+TouchState_t touch_state[2] = {0}; // 支持两个触摸点
 
 
 /* Exported Functions --------------------------------------------------------*/
@@ -142,6 +152,105 @@ void FT6336_RegisterCallback(pTouchEventCallback callback)
     g_touch_callback = callback;
 }
 
+
+//长按检测函数
+void FT6336_LONGPRESS_DETECTION(TouchState_t touch_state[2])
+{
+  for (int i = 0; i < 2; i++)
+  {
+    // 检查条件：正在触摸 && 尚未移动 && 尚未触发长按
+    if (touch_state[i].is_touching && !touch_state[i].is_moving && !touch_state[i].is_long_press_triggered)
+    {
+      // 检查是否超过长按时间阈值
+      if ((HAL_GetTick() - touch_state[i].press_start_tick) > TOUCH_LONG_PRESS_MS)
+      {
+        // 触发长按事件
+        //printf("Touch %d: LONG PRESS\r\n", i + 1);
+        touch_state[i].is_long_press_triggered = 1; // 置1，防止重复触发
+      }
+    }
+  }
+}
+/**
+ * @brief  用户自定义的触摸事件回调函数 (包含所有逻辑)
+ * @param  touch_point: 包含触摸点信息的结构体
+ * @retval None
+ */
+touch_event_state_t  touch_event[2];
+void MyTouchCallback(TouchPoint_t* touch_point)
+{
+    if (touch_point->id > 2) return;
+    uint8_t point_id = touch_point->id - 1;
+
+    switch (touch_point->event)
+    {
+        case TOUCH_EVENT_PRESS:
+        // 记录按下时的所有初始状态
+        touch_state[point_id].press_start_x = touch_point->x;
+        touch_state[point_id].press_start_y = touch_point->y;
+        touch_state[point_id].press_start_tick = HAL_GetTick();
+        touch_state[point_id].is_touching = 1;
+        touch_state[point_id].is_long_press_triggered = 0;
+        touch_state[point_id].is_moving = 0;
+        printf("Touch %d: Pressed at (%d, %d)\r\n", touch_point->id, touch_point->x, touch_point->y);
+        break;
+
+        case TOUCH_EVENT_CONTACT:
+        // 如果还未进入移动状态，检查移动距离
+        if (!touch_state[point_id].is_moving)
+        {
+            int dx = abs(touch_point->x - touch_state[point_id].press_start_x);
+            int dy = abs(touch_point->y - touch_state[point_id].press_start_y);
+            
+            if (dx > MOVE_THRESHOLD_PX || dy > MOVE_THRESHOLD_PX)
+            {
+                // 超过阈值，判定为移动开始
+                touch_state[point_id].is_moving = 1;
+                printf("Touch %d: MOVE STARTED\r\n", touch_point->id);
+            }
+        }
+        break;
+
+        case TOUCH_EVENT_RELEASE:
+        {
+             uint32_t press_duration = HAL_GetTick() - touch_state[point_id].press_start_tick;
+            // 在抬起时，根据整个过程的标志位，最终判定事件类型
+            if (touch_state[point_id].is_moving)
+            {
+                printf("Touch %d: MOVE (Duration: %d ms)\r\n", touch_point->id, press_duration);
+                // touch_event[point_id].event=TOUCH_EVENT_STATE_MOVE;
+                // touch_event[point_id].x=touch_point->x;
+                // touch_event[point_id].y=touch_point->y;
+                // touch_event[point_id].id=touch_point->id;
+            }
+            else if (touch_state[point_id].is_long_press_triggered)
+            {
+                // 长按已经打印过，这里可以什么都不做，或者打印一个结束事件
+                printf("Touch %d: LONG PRESS (Duration: %d ms)\r\n", touch_point->id, press_duration);
+                touch_event[point_id].event=TOUCH_EVENT_STATE_LONG_PRESS;
+                touch_event[point_id].x=touch_point->x;
+                touch_event[point_id].y=touch_point->y;
+                touch_event[point_id].id=point_id;
+            }
+            else
+            {
+                printf("Touch %d: SHORT CLICK (Duration: %d ms)\r\n", touch_point->id, press_duration);
+                touch_event[point_id].event=TOUCH_EVENT_STATE_SHORT_CLICK;
+                touch_event[point_id].x=touch_point->x;
+                touch_event[point_id].y=touch_point->y;
+                touch_event[point_id].id=point_id;
+            }
+            
+            // 清理该点的所有状态
+            memset(&touch_state[point_id], 0, sizeof(TouchState_t));
+            break;
+        }
+      
+        default:
+        break;
+    }
+}
+
 /**
  * @brief  This function must be called in the main loop to handle touch events.
  * @param  None
@@ -212,7 +321,7 @@ void FT6336_Process()
                 //printf("x:%d,y:%d,id:%d,event:%d\n",g_touch_points[i].x,g_touch_points[i].y,g_touch_points[i].id,g_touch_points[i].event);
                 // if (new_x != g_touch_points[i].x || new_y != g_touch_points[i].y)
                 if ((new_x != g_touch_points[i].x || new_y != g_touch_points[i].y)&&(g_touch_points[i].event == TOUCH_EVENT_CONTACT))
-                 {
+                {
                     g_touch_points[i].x = new_x;
                     g_touch_points[i].y = new_y;
                      g_touch_points[i].id = g_touch_points[i].id + 1;
@@ -290,8 +399,12 @@ FT6336_StatusTypeDef FT6336_Get_Touch_Point(FT6336_HandleTypeDef *hft6336, uint8
         return FT6336_ERROR;
     }
 
-    *x = ((data[0] & 0x0F) << 8) | data[1];
-    *y = ((data[2] & 0x0F) << 8) | data[3];
+//    *x = ((data[0] & 0x0F) << 8) | data[1];
+//    *y = ((data[2] & 0x0F) << 8) | data[3];
+    
+    *x = 320-(((data[2] & 0x0F) << 8) | data[3]);
+    *y = ((data[0] & 0x0F) << 8) | data[1];
+    
     *id = (data[2] >> 4) & 0x0F;
     *event = (TouchEvent_t)((data[0] & 0xC0) >> 6);
     return FT6336_OK;
@@ -348,4 +461,23 @@ static FT6336_StatusTypeDef FT6336_WriteReg(FT6336_HandleTypeDef *hft6336, uint8
         return FT6336_ERROR;
     }
     return FT6336_OK;
+}
+
+
+
+
+void FT6336_circulation(void)
+{
+    FT6336_Process();
+    FT6336_LONGPRESS_DETECTION(touch_state);
+}
+
+void drv_FT6336_init(void)
+{
+    if (FT6336_Init(&hft6336) != FT6336_OK)
+    {
+        Error_Handler();
+    }
+    FT6336_RegisterCallback(MyTouchCallback);
+    HAL_Delay(10);
 }
